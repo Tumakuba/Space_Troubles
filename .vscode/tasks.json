@@ -1,0 +1,37 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build linux",
+            "type": "shell",
+            "command": "sh ${workspaceFolder}/build-linux.sh",
+            "problemMatcher": ["$gcc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build windows",
+            "type": "shell",
+            "command": "sh ${workspaceFolder}/build-win.bat",
+            "problemMatcher": ["$gcc"],
+            "group": "build"
+        },
+        {
+            "label": "Build mac",
+            "type": "shell",
+            "command": "sh ${workspaceFolder}/build-mac.sh",
+            "problemMatcher": ["$gcc"],
+            "group": "build"
+        },
+        {
+            "label": "Run linux",
+            "type": "shell",
+            "command": "${workspaceFolder}/build/linux/main",
+            "dependsOn": "Build linux",
+            "group": "test",
+            "problemMatcher": []
+        }
+    ]
+}
