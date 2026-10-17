@@ -8,9 +8,8 @@
 #define maxVel 7.5f
 #define brakeForce 0.07f
 #define starslimit 200
-#define MAX_METEORS 500
+#define MAX_METEORS 1000
 #define asteroidRadius 20 
-#define spredAngle 1.0f * DEG2RAD
 
 typedef struct Asteroid {
     Vector2 position;
@@ -18,7 +17,7 @@ typedef struct Asteroid {
 } Asteroid;
 
 
-static Vector2 RotatePoint(Vector2 point, Vector2 center,float rawangle);
+static Vector2 RotatePoint(Vector2 point, Vector2 center,float rawAngle);
 static Asteroid smallasteroid[MAX_METEORS] = { 0 };
 static int screenw = 800;
 static int screenh = 600;
@@ -42,8 +41,8 @@ int main() {
   float playerAng = -90.0f;
   float charge = 1.0f;
   bool pause = false;
-  float angle;
-  float playerToPlanetAngle;
+  float playerToPlanetAng;
+  float playerToPlanetDis;
   Vector2 playerVel = {0,0};
   Vector2 playerWorldPos = {-300,-20};
 
@@ -108,28 +107,59 @@ int main() {
       playerWorldPos.y += playerVel.y;
     }
 
-    if(Vector2Distance(planetWorldPos, playerWorldPos) > 85700 && Vector2Distance(planetWorldPos, playerWorldPos) < 101300){
+    if(Vector2Distance(planetWorldPos, playerWorldPos) > 96700 && Vector2Distance(planetWorldPos, playerWorldPos) < 101300){
       float posx, posy, distance;
       int spawnsNo = 0;
       for (int i = 0; i < MAX_METEORS; i++){
-        if(!smallasteroid[i].loaded && spawnsNo < 5){
-          spawnsNo++;
-          playerToPlanetAngle = atan2f(playerWorldPos.y - planetWorldPos.y, playerWorldPos.x - planetWorldPos.x);
+        if(!smallasteroid[i].loaded && spawnsNo < 2){
+          bool corectPos = true;
 
-          angle = playerToPlanetAngle + GetRandomValue(-3000,3000) * (spredAngle/3000.0f);
-          distance = GetRandomValue(88700, 98300);
+          playerToPlanetAng = atan2f(playerWorldPos.y - planetWorldPos.y, playerWorldPos.x - planetWorldPos.x);
+          playerToPlanetDis = Vector2Distance(playerWorldPos, planetWorldPos);
+
+          float spredAngle = atan2f(3000.0f,playerToPlanetDis);
+          float angle = playerToPlanetAng + GetRandomValue(-3000, 3000) * (spredAngle / 3000.0f);
+          float distance = GetRandomValue(95100, 98300);
 
           posx = planetWorldPos.x + cosf(angle) * distance;
           posy = planetWorldPos.y + sinf(angle) * distance;
 
           smallasteroid[i].position = (Vector2){posx, posy};
-          smallasteroid[i].loaded = true;
+
+/*
+
+          angle = GetRandomValue(0,36000) * (DEG2RAD/100.0f);
+          distance = GetRandomValue(fov + asteroidRadius, 3000);
+
+          posx = playerWorldPos.x + cosf(angle) * distance;
+          posy = playerWorldPos.y + sinf(angle) * distance;
+
+          float playerToAsteroidDis = Vector2Distance((Vector2){posx,posy}, playerWorldPos);
+          float planetToAsteroidDis = Vector2Distance((Vector2){posx,posy}, planetWorldPos);
+
+          smallasteroid[i].position = (Vector2){posx, posy};
+*/
+          for(int n = 0; n < MAX_METEORS && corectPos; n++){
+            if(i != n && smallasteroid[i].loaded && Vector2Distance(smallasteroid[i].position, smallasteroid[n].position)<45)corectPos=false;
+          }
+
+          if(corectPos){
+            smallasteroid[i].loaded = true;
+            spawnsNo++;
+          }
+          else smallasteroid[i].loaded = false;
+/*
+          if(playerToAsteroidDis > fov + asteroidRadius && planetToAsteroidDis >= 88700 && planetToAsteroidDis <= 98300 && corectPos){
+            //smallasteroid[i].position = (Vector2){posx, posy};
+            smallasteroid[i].loaded = true;
+            spawnsNo++;
+          }*/
         }
       }
     }
 
     for(int i = 0; i < MAX_METEORS; i++){
-      if(smallasteroid[i].loaded && Vector2Distance(smallasteroid[i].position, playerWorldPos) > 3000 )smallasteroid[i].loaded=false;
+      if(smallasteroid[i].loaded && (Vector2Distance(planetWorldPos, playerWorldPos) > 101300 || Vector2Distance(planetWorldPos, playerWorldPos) < 96700))smallasteroid[i].loaded=false;
     }
 
 
@@ -152,6 +182,7 @@ int main() {
       DrawRectangle(shipPos.x-75, shipPos.y-200, 140, 400, DarkRed);
       DrawTriangle(p1, p2, p3, RED);
       if(laserfire)DrawLineEx(p1, l1, 1.0f, BLUE);
+      
       for(int i = 0; i < MAX_METEORS; i++){
 
         Vector2 meteorPos = {smallasteroid[i].position.x - playerWorldPos.x + playerPos.x, smallasteroid[i].position.y - playerWorldPos.y + playerPos.y};
@@ -160,6 +191,9 @@ int main() {
 
         if(visible && smallasteroid[i].loaded) DrawCircle(meteorPos.x, meteorPos.y, asteroidRadius, GRAY);
       }
+    
+      DrawFPS(10, 88);
+
       DrawText(TextFormat("Fuel: %.2f%%", fuel), 10, 10, 26, GREEN);
       DrawText(TextFormat("Charge: %.02f%%",(float)charge), 10, 36, 26, GREEN);
       DrawText(TextFormat("Cordinates: %.02f %.02f",-playerWorldPos.x,-playerWorldPos.y), 10, 62, 26, GREEN);
@@ -171,8 +205,8 @@ int main() {
   return 0;
 }
 
-Vector2 RotatePoint(Vector2 point, Vector2 center,float rawangle){
-  float angle = rawangle * DEG2RAD;
+Vector2 RotatePoint(Vector2 point, Vector2 center,float rawAngle){
+  float angle = rawAngle * DEG2RAD;
   float s = sinf(angle);
   float c = cosf(angle);
   point.x -= center.x;
