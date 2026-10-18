@@ -1,8 +1,10 @@
 @echo off
 if not exist build\win mkdir build\win
-xxd -i src\Rocket.png > src\assets.h
-gcc src/main.c -o build/win/SpaceTroubles.exe ^
-    libraylib.a ^
-    -lwinmm -lgdi32 -lopengl32 -lcomdlg32 ^
-    -std=c99 -static
-echo Windows build done: build/win/SpaceTroubles.exe
+set CC=C:\raylib\w64devkit\bin\gcc.exe
+set RAYLIB_PATH=C:\raylib\raylib\src
+%CC% src/main.c -o build/win/main.exe ^
+    -I%RAYLIB_PATH% ^
+    -L%RAYLIB_PATH% ^
+    -lraylib -lopengl32 -lgdi32 -lwinmm -lm -lpthread ^
+    -std=c99 -Wall -Wextra -O2
+echo Windows build done: build/win/main.exe
