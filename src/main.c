@@ -46,7 +46,7 @@ static float hitDistance = 750;
 static Object2 star[starsNo] = {0};
 static bool gameStart = false;
 static Vector2 playerPos  = {400, 550};
-
+static Texture2D playerTex;
 
 void gameRastart(){
   playerPos = (Vector2){400, 550};
@@ -88,6 +88,7 @@ int main() {
   p3 = (Vector2){playerPos.x + 15, playerPos.y + 10};
   
   InitWindow(screenw, screenh, "Space Troubles");
+  playerTex = LoadTexture("./Rocket.png");
   SetTargetFPS(60);
   while (!WindowShouldClose()) {
 
@@ -225,10 +226,16 @@ int main() {
       }
     }
 
-    if(dev)DrawRectangleLines(playerPos.x-15,playerPos.y-20,30,40,GREEN);
-    else DrawRectangle(playerPos.x-15,playerPos.y-20,30,40,(Color){0, 0, 0, 0});
-    
-    DrawTriangle(p1, p2, p3, RED);
+    if(dev){
+    DrawText(TextFormat("Tex ID: %d  W:%d H:%d", playerTex.id, playerTex.width, playerTex.height), 10, 98, 20, WHITE);
+    }
+
+    DrawTextureV(playerTex, (Vector2){playerPos.x-15, playerPos.y-20}, WHITE);
+    if(dev){
+      DrawRectangleLines(playerPos.x-15,playerPos.y-20,30,40,GREEN);
+      DrawTriangleLines(p1, p2, p3, PURPLE);
+    }
+
     if(dev){
       DrawLineEx(p1, (Vector2){playerPos.x,playerPos.y - 750}, 1.5f, BLUE);
       if(laserfire)DrawLineEx(p1, p4, 1.5f, RED);
@@ -294,6 +301,7 @@ int main() {
 
     EndDrawing();
   }
+  UnloadTexture(playerTex);
   CloseWindow();
   return 0;
 }
